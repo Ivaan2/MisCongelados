@@ -1,0 +1,10 @@
+{
+  "placeholderImages": [
+    {
+      "id": "default-food",
+      "description": "A generic placeholder for a food item.",
+      "imageUrl": "https://images.unsplash.com/photo-1621758745802-6c16a087ca32?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Zm9vZCUyMG1lYWx8ZW58MHx8fHwxNzY5NTIwMjIzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "food meal"
+    }
+  ]
+}
