@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Camera, LogOut, Search, User, Refrigerator } from 'lucide-react';
+import { LogOut, Search, User, Refrigerator } from 'lucide-react';
 import { ViewToggle } from './freezer/view-toggle';
 import { useAuth } from '@/hooks/use-auth';
 import { auth } from '@/lib/firebase';
@@ -49,7 +49,7 @@ export function BottomNavbar({
   const isMockUser = !authUser;
   
   const user = authUser || {
-      displayName: 'Dev User',
+      displayName: 'Usuario dev',
       email: 'dev.user@example.com',
       photoURL: 'https://i.pravatar.cc/40?u=dev-user',
   };
@@ -72,7 +72,7 @@ export function BottomNavbar({
                 <Avatar className="h-10 w-10">
                   <AvatarImage
                     src={user.photoURL ?? ''}
-                    alt={user.displayName ?? 'User'}
+                    alt={user.displayName ?? 'Usuario'}
                   />
                   <AvatarFallback>
                     {user.displayName ? user.displayName.charAt(0).toUpperCase() : <User />}
@@ -95,7 +95,7 @@ export function BottomNavbar({
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Refrigerator />
-                    <span>Switch Freezer</span>
+                    <span>Cambiar congelador</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
@@ -112,7 +112,7 @@ export function BottomNavbar({
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} disabled={isMockUser}>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>Cerrar sesión</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -121,7 +121,7 @@ export function BottomNavbar({
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Filter items..."
+            placeholder="Filtrar alimentos..."
             className="pl-9"
             value={searchQuery}
             onChange={(e) => onSearchQueryChange(e.target.value)}
@@ -129,8 +129,8 @@ export function BottomNavbar({
         </div>
         <ViewToggle view={view} setView={setView} />
         <Button size="icon" className="rounded-full h-12 w-12" onClick={onAddClick}>
-          <Camera className="h-6 w-6" />
-          <span className="sr-only">Add new item</span>
+          <Refrigerator className="h-6 w-6" />
+          <span className="sr-only">Añadir alimento</span>
         </Button>
       </div>
     </nav>

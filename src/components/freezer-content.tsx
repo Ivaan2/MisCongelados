@@ -1,69 +1,110 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ItemGrid } from '@/components/freezer/item-grid';
 import { ItemList } from '@/components/freezer/item-list';
 import { type FoodItem } from '@/lib/types';
-import { AddItemDialog } from './freezer/add-item-dialog';
-import { Refrigerator, SearchX } from 'lucide-react';
-import { Timestamp } from 'firebase/firestore';
+import AddItemDialog from './freezer/add-item-dialog';
+import { Pencil, Refrigerator, SearchX } from 'lucide-react';
+import { itemsApi } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 type FreezerContentProps = {
   isAddDialogOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onItemAdded: () => void;
+  onOpenChangeAction: (open: boolean) => void;
+  onItemAddedAction: () => void;
   view: 'grid' | 'list';
   searchQuery: string;
   currentFreezerId: string;
+  currentFreezerName: string;
+  onRenameFreezer: (name: string) => Promise<void>;
 };
 
-// Mock data for development
-const mockItems: FoodItem[] = [
-  {
-    id: '1',
-    userId: 'mock-user',
-    freezerId: 'freezer1',
-    name: 'Grass-fed Ribeye Steak',
-    description: '2-inch thick cut, vacuum sealed. From local farm.',
-    freezerBox: 'Meat Drawer',
-    frozenDate: new Timestamp(Math.floor(Date.now() / 1000) - 86400 * 5, 0), // 5 days ago
-    photoUrl: 'https://images.unsplash.com/photo-1621758745802-6c16a087ca32?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Zm9vZCUyMG1lYWx8ZW58MHx8fHwxNzY5NTIwMjIzfDA&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-  {
-    id: '2',
-    userId: 'mock-user',
-    freezerId: 'freezer1',
-    name: 'Organic Blueberries',
-    description: 'Picked at peak ripeness. Great for smoothies.',
-    freezerBox: 'Fruit Shelf',
-    frozenDate: new Timestamp(Math.floor(Date.now() / 1000) - 86400 * 12, 0), // 12 days ago
-  },
-  {
-    id: '3',
-    userId: 'mock-user',
-    freezerId: 'freezer2',
-    name: 'Homemade Tomato Soup',
-    description: 'Made with garden tomatoes. Just reheat and serve.',
-    freezerBox: 'Leftovers',
-    frozenDate: new Timestamp(Math.floor(Date.now() / 1000) - 86400 * 2, 0), // 2 days ago
-    photoUrl: 'https://images.unsplash.com/photo-1575720197943-2c5f1107569a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0b21hdG8lMjBzb3VwfGVufDB8fHx8MTc3MDA4MDQ1OHww&ixlib=rb-4.1.0&q=80&w=1080',
-  },
-  {
-    id: '4',
-    userId: 'mock-user',
-    freezerId: 'freezer2',
-    name: 'Sourdough Bread Loaf',
-    description: 'Artisan bread, pre-sliced for convenience.',
-    freezerBox: 'Side Door',
-    frozenDate: new Timestamp(Math.floor(Date.now() / 1000) - 86400 * 20, 0), // 20 days ago
-  },
-];
+export function FreezerContent({
+  isAddDialogOpen,
+  onOpenChangeAction,
+  onItemAddedAction,
+  view,
+  searchQuery,
+  currentFreezerId,
+  currentFreezerName,
+  onRenameFreezer,
+}: FreezerContentProps) {
+  const [items, setItems] = useState<FoodItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newFreezerName, setNewFreezerName] = useState(currentFreezerName);
+  const [isSavingName, setIsSavingName] = useState(false);
+  const { toast } = useToast();
 
-export function FreezerContent({ isAddDialogOpen, onOpenChange, onItemAdded, view, searchQuery, currentFreezerId }: FreezerContentProps) {
-  const [items, setItems] = useState<FoodItem[]>(mockItems);
+  useEffect(() => {
+    setNewFreezerName(currentFreezerName);
+  }, [currentFreezerName]);
 
-  const handleItemDeleted = (itemId: string) => {
-    setItems((currentItems) => currentItems.filter((item) => item.id !== itemId));
+  // Cargar items cuando cambia el freezerId o cuando se agrega un item
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await itemsApi.getItems(currentFreezerId);
+        if (response && typeof response === 'object' && 'success' in response) {
+          if (response.success && 'data' in response) {
+            const data = response.data;
+            if (Array.isArray(data)) {
+              setItems(data as FoodItem[]);
+            } else {
+              // Si data no es un array, establecer array vacío
+              setItems([]);
+            }
+          } else if (!response.success && 'error' in response) {
+            // Si la respuesta indica un error
+            console.error('API error:', response.error);
+            setError(response.error);
+            setItems([]);
+          }
+        } else {
+          // Respuesta inesperada
+          setItems([]);
+        }
+      } catch (err) {
+        console.error('Error loading items:', err);
+        const errorMessage = err instanceof Error ? err.message : 'No se pudieron cargar los alimentos';
+
+        // Si el error es de autenticación, mostrar mensaje específico
+        if (errorMessage.includes('not authenticated') || errorMessage.includes('401')) {
+          setError('Inicia sesión para ver tus alimentos');
+        } else {
+          setError(errorMessage);
+        }
+        setItems([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadItems();
+  }, [currentFreezerId, isAddDialogOpen]);
+
+  const handleItemDeleted = async (itemId: string) => {
+    try {
+      await itemsApi.deleteItem(itemId);
+      setItems((currentItems) => currentItems.filter((item) => item.id !== itemId));
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar el alimento');
+    }
   };
   
   const filteredItems = useMemo(() => {
@@ -80,24 +121,44 @@ export function FreezerContent({ isAddDialogOpen, onOpenChange, onItemAdded, vie
     <>
       <div className="container mx-auto">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
-          <h1 className="text-3xl font-bold font-headline">Your Items</h1>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsRenaming(true)}
+              aria-label="Editar nombre del congelador"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <h1 className="text-3xl font-bold font-headline">Recuerda tus congelados</h1>
+          </div>
         </div>
 
-        {filteredItems.length === 0 ? (
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground">Cargando alimentos...</p>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed rounded-lg mt-8">
             {searchQuery ? (
               <>
                 <SearchX className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h2 className="mt-4 text-xl font-semibold">No Results Found</h2>
+                <h2 className="mt-4 text-xl font-semibold">No se encontraron resultados</h2>
                 <p className="text-muted-foreground mt-2">
-                  No items matched your search for "{searchQuery}".
+                  No se encontraron alimentos que coincidan con "{searchQuery}".
                 </p>
               </>
             ) : (
               <>
                 <Refrigerator className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h2 className="mt-4 text-xl font-semibold">This freezer is empty!</h2>
-                <p className="text-muted-foreground mt-2">Click the camera button to get started.</p>
+                <h2 className="mt-4 text-xl font-semibold">¡Este congelador está vacío!</h2>
+                <p className="text-muted-foreground mt-2">Haz clic en el botón de la esquina inferior derecha para comenzar.</p>
               </>
             )}
           </div>
@@ -109,10 +170,70 @@ export function FreezerContent({ isAddDialogOpen, onOpenChange, onItemAdded, vie
       </div>
       <AddItemDialog 
         open={isAddDialogOpen} 
-        onOpenChange={onOpenChange} 
-        onItemAdded={onItemAdded}
+        onOpenChangeAction={onOpenChangeAction}
+        onItemAddedAction={onItemAddedAction}
         currentFreezerId={currentFreezerId}
       />
+      <Dialog open={isRenaming} onOpenChange={setIsRenaming}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar nombre del congelador</DialogTitle>
+            <DialogDescription>
+              Actualiza el nombre de este congelador.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Input
+              value={newFreezerName}
+              onChange={(event) => setNewFreezerName(event.target.value)}
+              placeholder="Nombre del congelador"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRenaming(false)}
+              disabled={isSavingName}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                const trimmed = newFreezerName.trim();
+                if (!trimmed) {
+                  toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: 'El nombre del congelador no puede estar vacío.',
+                  });
+                  return;
+                }
+                try {
+                  setIsSavingName(true);
+                  await onRenameFreezer(trimmed);
+                  setIsRenaming(false);
+                  toast({
+                    title: 'Actualizado',
+                    description: 'El nombre del congelador se actualizó correctamente.',
+                  });
+                } catch (renameError) {
+                  console.error('Failed to rename freezer:', renameError);
+                  toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: renameError instanceof Error ? renameError.message : 'No se pudo actualizar el nombre del congelador.',
+                  });
+                } finally {
+                  setIsSavingName(false);
+                }
+              }}
+              disabled={isSavingName}
+            >
+              {isSavingName ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

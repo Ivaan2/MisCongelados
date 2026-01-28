@@ -13,7 +13,7 @@ export function ViewToggle({ view, setView }: ViewToggleProps) {
         variant={view === 'grid' ? 'secondary' : 'ghost'}
         size="sm"
         onClick={() => setView('grid')}
-        aria-label="Grid view"
+        aria-label="Vista de cuadrícula"
         className="rounded-md"
       >
         <LayoutGrid className="h-4 w-4" />
@@ -22,7 +22,7 @@ export function ViewToggle({ view, setView }: ViewToggleProps) {
         variant={view === 'list' ? 'secondary' : 'ghost'}
         size="sm"
         onClick={() => setView('list')}
-        aria-label="List view"
+        aria-label="Vista de lista"
         className="rounded-md"
       >
         <List className="h-4 w-4" />

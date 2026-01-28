@@ -1,14 +1,16 @@
-import type { Timestamp } from 'firebase/firestore';
+import type { FoodType } from '@/lib/food-types';
 
 export type FoodItem = {
   id: string;
   userId: string;
   name: string;
   description: string;
-  frozenDate: Timestamp;
-  freezerBox: string;
-  photoUrl?: string;
+  frozenDate: Date;
+  freezerBox?: string;
+  itemType: FoodType;
   freezerId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 export type Freezer = {

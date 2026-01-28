@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -13,19 +12,19 @@ import {
 import { type FoodItem } from '@/lib/types';
 import { ItemDetailsDialog } from './item-details-dialog';
 import { Box } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-
-const defaultFoodImage = PlaceHolderImages.find(p => p.id === 'default-food');
+import { getFoodMeta } from '@/lib/food-catalog';
 
 export function ItemCard({ item, onItemDeleted }: { item: FoodItem; onItemDeleted: () => void; }) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const foodMeta = getFoodMeta(item.itemType);
+  const Icon = foodMeta.icon;
 
   return (
     <>
       <Card
         className="flex flex-col h-full cursor-pointer hover:shadow-accent/20 hover:shadow-lg transition-shadow duration-300"
         onClick={() => setIsDetailsOpen(true)}
-        aria-label={`View details for ${item.name}`}
+        aria-label={`Ver detalles de ${item.name}`}
       >
         <CardHeader>
           <CardTitle className="truncate font-headline">{item.name}</CardTitle>
@@ -34,21 +33,18 @@ export function ItemCard({ item, onItemDeleted }: { item: FoodItem; onItemDelete
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">
-          <div className="aspect-video relative w-full bg-muted rounded-md overflow-hidden">
-            <Image
-              src={item.photoUrl || defaultFoodImage?.imageUrl || ''}
-              alt={item.name}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              data-ai-hint={defaultFoodImage?.imageHint}
-            />
+          <div
+            className="aspect-video w-full rounded-md overflow-hidden flex items-center justify-center"
+            style={{ backgroundColor: `${foodMeta.color}22` }}
+            aria-label={foodMeta.label}
+          >
+            <Icon className="h-16 w-16" style={{ color: foodMeta.color }} />
           </div>
         </CardContent>
         <CardFooter>
             <div className="flex items-center text-sm text-muted-foreground">
               <Box className="w-4 h-4 mr-1.5 flex-shrink-0" />
-              <span>{item.freezerBox}</span>
+              <span>{item.freezerBox || 'Sin ubicación'}</span>
             </div>
         </CardFooter>
       </Card>

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useEffect, useState, ReactNode, useRef } from 'react';
 import type { User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -20,6 +20,7 @@ const publicRoutes = ['/login'];
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const bootstrappedUserId = useRef<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -42,6 +43,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push('/');
     }
   }, [user, loading, pathname, router]);
+
+  useEffect(() => {
+    if (!user || loading) return;
+    if (bootstrappedUserId.current === user.uid) return;
+
+    const runBootstrap = async () => {
+      try {
+        const token = await user.getIdToken();
+        await fetch('/api/bootstrap', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        bootstrappedUserId.current = user.uid;
+      } catch (error) {
+        console.error('Failed to bootstrap user data:', error);
+      }
+    };
+
+    runBootstrap();
+  }, [user, loading]);
 
   if (loading) {
     return <LoadingSpinner />;

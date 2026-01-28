@@ -21,16 +21,16 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, provider);
       toast({
-        title: 'Success',
-        description: 'You have successfully signed in.',
+        title: 'Éxito',
+        description: 'Has iniciado sesión correctamente.',
       });
       // The AuthProvider will handle redirection automatically
     } catch (error) {
       console.error('Error signing in with Google', error);
       toast({
         variant: 'destructive',
-        title: 'Authentication Error',
-        description: 'Failed to sign in with Google. Please try again.',
+        title: 'Error de autenticación',
+        description: 'No se pudo iniciar sesión con Google. Inténtalo de nuevo.',
       });
     }
   };
@@ -40,16 +40,16 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">
-            Welcome to FreezerFriend
+            Bienvenido a FreezerFriend
           </CardTitle>
           <CardDescription>
-            Sign in or create an account to get started.
+            Inicia sesión o crea una cuenta para comenzar.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button variant="outline" className="w-full" onClick={handleSignIn}>
             <GoogleIcon className="mr-2 h-5 w-5" />
-            Continue with Google
+            Continuar con Google
           </Button>
         </CardContent>
       </Card>
