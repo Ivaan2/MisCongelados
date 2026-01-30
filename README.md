@@ -34,6 +34,11 @@ The project is set up to run in a development environment.
 
 For a detailed breakdown of the project structure, components, and logic, please see the [DOCUMENTATION.md](docs/DOCUMENTATION.md) file.
 
+## Documentacion tecnica
+
+- [Networking_Diagram](docs/Networking_Diagram.md)
+- [SOFTWARE_DESIGN_DIAGRAM](docs/SOFTWARE_DESIGN_DIAGRAM.md)
+
 ## Deploy (Google App Hosting)
 
 El despliegue recomendado es **Google App Hosting (Firebase App Hosting)** para maximizar la integración con Firebase (Auth, Firestore y, si se usa, Storage) y aprovechar SSR con escalado serverless.

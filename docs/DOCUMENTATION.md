@@ -2,6 +2,11 @@
 
 This document provides a deep dive into the project structure, components, and logic of the MisCongelados application.
 
+## Documentacion tecnica
+
+- [Networking_Diagram](Networking_Diagram.md)
+- [SOFTWARE_DESIGN_DIAGRAM](SOFTWARE_DESIGN_DIAGRAM.md)
+
 ## Project Structure
 
 The project follows a standard Next.js App Router structure.
